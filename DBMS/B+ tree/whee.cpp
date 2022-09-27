@@ -2,25 +2,25 @@
 #include <chrono>
 using namespace std;
 using namespace chrono;
-int n, mx; //number of child;
+int n, mx; // number of child;
+
 struct mystruct
 {
     int currentNode;
-    mystruct *parent,*next;
-    string *english,*bangla;
+    mystruct *parent, *next;
+    string *word, *meaning;
     bool lf;
     mystruct **point;
-} ;
-mystruct *root,*firstLeaf;
+};
+mystruct *root, *firstLeaf;
 
-mystruct* createNode()
+mystruct *createNode()
 {
-    mystruct *m=new mystruct();
+    mystruct *m = new mystruct();
 
-
-    m->point = new mystruct *[n+1];
-    m->english=new string[n];
-    m->bangla=new string[n];
+    m->point = new mystruct *[n + 1];
+    m->word = new string[n];
+    m->meaning = new string[n];
 
     m->currentNode = 0;
     m->parent = NULL;
@@ -28,42 +28,44 @@ mystruct* createNode()
     m->lf = true;
     return m;
 }
-mystruct *findLeaf(mystruct *tempRt,string english)
+mystruct *findLeaf(mystruct *tempRt, string word)
 {
 
-    while(tempRt->lf==false)
+    while (tempRt->lf == false)
     {
         int i;
-        for(i=0; i<tempRt->currentNode; i++) if(english<tempRt->english[i]) break;
+        for (i = 0; i < tempRt->currentNode; i++)
+            if (word < tempRt->word[i])
+                break;
         tempRt = tempRt->point[i];
     }
     return tempRt;
-
 }
 
-void insertValueAndPoint(mystruct *parent,string value,mystruct *right)
+void insertValueAndPoint(mystruct *parent, string value, mystruct *right)
 {
-    int i=parent->currentNode-1;
-    for(;i>=0; i--)
+    int i = parent->currentNode - 1;
+    for (; i >= 0; i--)
     {
-        if(parent->english[i]<=value) break;
+        if (parent->word[i] <= value)
+            break;
         else
         {
-            parent->english[i+1] = parent->english[i];
-            parent->point[i+2] = parent->point[i+1];
+            parent->word[i + 1] = parent->word[i];
+            parent->point[i + 2] = parent->point[i + 1];
         }
     }
-    parent->english[i+1] = value;
-    parent->point[i+2] = right;
+    parent->word[i + 1] = value;
+    parent->point[i + 2] = right;
     parent->currentNode++;
 }
 
-void insertMiddle(mystruct *parent,string value,mystruct *left,mystruct *right)
+void insertMiddle(mystruct *parent, string value, mystruct *left, mystruct *right)
 {
-    if(parent==NULL)
+    if (parent == NULL)
     {
         parent = createNode();
-        parent->english[0] = value;
+        parent->word[0] = value;
         parent->point[0] = left;
         parent->point[1] = right;
         parent->currentNode++;
@@ -74,104 +76,107 @@ void insertMiddle(mystruct *parent,string value,mystruct *left,mystruct *right)
         return;
     }
     right->parent = parent;
-    insertValueAndPoint(parent,value,right);
-    if(parent->currentNode==mx)
+    insertValueAndPoint(parent, value, right);
+    if (parent->currentNode == mx)
     {
         mystruct *splitNode = createNode();
         splitNode->lf = false;
-        int j=0;
-        for(int i=parent->currentNode-(n-1)/2;i<mx; i++)
+        int j = 0;
+        for (int i = parent->currentNode - (n - 1) / 2; i < mx; i++)
         {
-            splitNode->english[j] = parent->english[i];
-            if(j==0)
+            splitNode->word[j] = parent->word[i];
+            if (j == 0)
             {
                 splitNode->point[0] = parent->point[i];
                 splitNode->point[0]->parent = splitNode;
             }
-            splitNode->point[j+1] = parent->point[i+1];
-            splitNode->point[j+1]->parent = splitNode;
+            splitNode->point[j + 1] = parent->point[i + 1];
+            splitNode->point[j + 1]->parent = splitNode;
             j++;
         }
-        parent->currentNode-=(n-1)/2+1;
-        splitNode->currentNode = (n-1)/2;
-        insertMiddle(parent->parent,parent->english[parent->currentNode],parent,splitNode);
+        parent->currentNode -= (n - 1) / 2 + 1;
+        splitNode->currentNode = (n - 1) / 2;
+        insertMiddle(parent->parent, parent->word[parent->currentNode], parent, splitNode);
     }
-
 }
 
-void insertLeaf(string english,string bangla)
+void insertLeaf(string word, string meaning)
 {
-    mystruct *leaf = findLeaf(root,english);
-    int i= leaf->currentNode-1;
-    if(i>-1) {
-    for(; i>=0; i--)
+    mystruct *leaf = findLeaf(root, word);
+    int i = leaf->currentNode - 1;
+    if (i > -1)
     {
-    	if(english<leaf->english[i])
-    	{
-    		leaf->english[i+1] = leaf->english[i];
-    		leaf->bangla[i+1] = leaf->bangla[i];
-    	}
-    	else break;
+        for (; i >= 0; i--)
+        {
+            if (word < leaf->word[i])
+            {
+                leaf->word[i + 1] = leaf->word[i];
+                leaf->meaning[i + 1] = leaf->meaning[i];
+            }
+            else
+                break;
+        }
     }
-    }
-    leaf->english[i+1] = english;
-    leaf->bangla[i+1] = bangla;
+    leaf->word[i + 1] = word;
+    leaf->meaning[i + 1] = meaning;
     leaf->currentNode++;
 
-    if(leaf->currentNode==mx)
+    if (leaf->currentNode == mx)
     {
         mystruct *splitNode = createNode();
-        int j=0;
-        for(int i=leaf->currentNode-n/2;i<mx; i++)
+        int j = 0;
+        for (int i = leaf->currentNode - n / 2; i < mx; i++)
         {
-            splitNode->english[j] = leaf->english[i];
-            splitNode->bangla[j] = leaf->bangla[i];
+            splitNode->word[j] = leaf->word[i];
+            splitNode->meaning[j] = leaf->meaning[i];
             j++;
         }
-        leaf->currentNode-=n/2;
-        splitNode->currentNode = n/2;
+        leaf->currentNode -= n / 2;
+        splitNode->currentNode = n / 2;
         splitNode->next = leaf->next;
         leaf->next = splitNode;
-        insertMiddle(leaf->parent,splitNode->english[0],leaf,splitNode);
+        insertMiddle(leaf->parent, splitNode->word[0], leaf, splitNode);
     }
 }
 
 int main(void)
 {
-	cout << "number of Child:" << endl;
-	cin >> n;
+    cout << "number of Child: ";
+    cin >> n;
     // n=3;
-	mx=n;
+    mx = n;
     root = createNode();
     mystruct *leaf;
-    int i=0;
-    string english,bangla,searchEnglish;
+    int i = 0;
+    string word, meaning, searchword;
     ifstream ifile;
     ifile.open("dictionary.txt");
-    if(!ifile)
-        cout<<"ayhay";
+    if (!ifile)
+        cout << "ayhay";
     auto start1 = high_resolution_clock::now();
-    while(ifile>>english)
+    while (ifile >> word)
     {
-    	getline(ifile,bangla);
-    	insertLeaf(english,bangla);
+        getline(ifile, meaning);
+        insertLeaf(word, meaning);
     }
     auto stop1 = high_resolution_clock::now();
-    auto duration1 = duration_cast<milliseconds>(stop1-start1);
-         cout<<"Time taken to build Tree: "<<duration1.count()<<endl;
-    cout<<"enter text to search: ";
-    while(cin>>searchEnglish)
+    auto duration1 = duration_cast<milliseconds>(stop1 - start1);
+    cout << "Time taken to build Tree: " << duration1.count() << endl;
+    cout << "enter text to search: ";
+    while (cin >> searchword)
     {
-    	 auto start = high_resolution_clock::now();
-         leaf= findLeaf(root,searchEnglish);
-    	 for(i=0; i<leaf->currentNode; i++) if(searchEnglish==leaf->english[i]) break;
-    	 if(i==leaf->currentNode) cout<<"no word founds\n";
-    	 else cout<<searchEnglish<<": "<<leaf->bangla[i]<<endl;
-         auto stop = high_resolution_clock::now();
-         auto duration = duration_cast<microseconds>(stop-start);
-         cout<<"Time taken to search: "<<duration.count()<<endl;
-    	 cout<<"enter text to search: ";
+        auto start = high_resolution_clock::now();
+        leaf = findLeaf(root, searchword);
+        for (i = 0; i < leaf->currentNode; i++)
+            if (searchword == leaf->word[i])
+                break;
+        if (i == leaf->currentNode)
+            cout << "no word founds\n";
+        else
+            cout << searchword << ": " << leaf->meaning[i] << endl;
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(stop - start);
+        cout << "Time taken to search: " << duration.count() << endl;
+        cout << "enter text to search: ";
     }
-
-
 }
