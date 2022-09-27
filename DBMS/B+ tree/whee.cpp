@@ -1,8 +1,8 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 #include <chrono>
 using namespace std;
 using namespace chrono;
-int n,mx; //number of child;
+int n, mx; //number of child;
 struct mystruct
 {
     int currentNode;
@@ -147,14 +147,18 @@ int main(void)
     int i=0;
     string english,bangla,searchEnglish;
     ifstream ifile;
-    ifile.open("tanaaa.txt");
+    ifile.open("dictionary.txt");
     if(!ifile)
         cout<<"ayhay";
+    auto start1 = high_resolution_clock::now();
     while(ifile>>english)
     {
     	getline(ifile,bangla);
     	insertLeaf(english,bangla);
     }
+    auto stop1 = high_resolution_clock::now();
+    auto duration1 = duration_cast<milliseconds>(stop1-start1);
+         cout<<"Time taken to build Tree: "<<duration1.count()<<endl;
     cout<<"enter text to search: ";
     while(cin>>searchEnglish)
     {
