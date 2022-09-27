@@ -1,0 +1,5 @@
+Access modes govern the type of operations possible in the opened file.
+It refers to how the file will be used once its opened.
+These modes also define the location of the File Handle in the file.
+File handle is like a cursor, which defines from where the data has to be read or written in the file.
+There are 6 access modes in python.
