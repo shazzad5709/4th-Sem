@@ -2,6 +2,9 @@
 # BSSE1203
 # 128 bit AES encryption and decryption
 
+from math import ceil
+
+
 Sbox = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -371,7 +374,7 @@ def decrypt(text):
 
 def decrypt_multiblock(text):
     velvet=[]
-    for i in range(int(len(text)/16)):
+    for i in range(ceil(len(text)/16)):
         red = []
         red = text[i*16: i*16+16]
         decrypt(red)
@@ -396,14 +399,14 @@ def encrypt_multiblock(text, key) -> list:
     return cipher
 
 def main():
-    plaintext = 'Two One Nine Two Ok Sure'
+    plaintext = 'Padma Bridge was inaugurated on June 25, 2022 by the Honorable Prime Minister Sheikh Hasina of the People\'s Republic of Bangladesh.'
     masterkey = 'Thats my Kung Fu'
     text = []
     key = []
     for i in range(len(plaintext)):
         text.append(ascii_to_hex.get(ord(plaintext[i])))
     if len(text)%16 != 0:
-        for i in range(len(text)%16):
+        for i in range(16-len(text)%16):
             text.append(0x80)
 
     for i in range(len(masterkey)):
