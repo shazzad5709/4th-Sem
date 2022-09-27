@@ -1,12 +1,3 @@
-/*
- * Copyright 2014 - 2020
- *
- * Author:      Yorick de Wid
- * Description: Simple chatroom in C
- * License:     GPLv3
- * Version:     1.5
- */
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
