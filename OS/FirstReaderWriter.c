@@ -1,82 +1,56 @@
-#include<stdlib.h>
-#include<unistd.h>
 #include<stdio.h>
-#include<pthread.h>
 #include<semaphore.h>
+#include<pthread.h>
 
-#define N 10
-int readCount=0, count=5, pc=0;
-sem_t readMutex, writeMutex, readTry, resource;
-pthread_t read_t[10], write_t[10];
+int readCount=5,readNum=0;
+sem_t write;
+pthread_mutex_t mutex;
+int numPr_Cs[10] = {1,2,3,4,5,6,7,8,9,10}; 
 
-void *reader(void *rn)
-{
-    sem_wait(&readTry);
-    sem_wait(&readMutex);
-    readCount++;
-
-    if(readCount==1)
-        sem_wait(&resource);
-
-    sem_post(&readMutex);
-    sem_post(&readTry);
-
-    printf("Reader: %d\t Value: %d\n", *(int*)rn, count);
-    //pc++;
-
-    sem_wait(&readMutex);
-    readCount--;
-
-    if(readCount==0)
-        sem_post(&resource);
-    
-    sem_post(&readMutex);
+void *writer(void *numW){
+ sem_wait(&write);
+ readCount = readCount*2;
+ printf(" Writer %d has updated the value to %d\n",(*((int* )numW)),readCount);
+ sem_post(&write);
 }
 
-void *writer(void *wn)
-{
-    sem_wait(&writeMutex);
-    writeCount++;
+void *reader(void *numR){
+ pthread_mutex_lock(&mutex);
+ readNum++;
+ if(readNum == 1){
+ 	sem_wait(&write);
+ }
+ 
+ pthread_mutex_unlock(&mutex);
+ printf(" Reader %d reading the value %d\n",(*((int* )numR)),readCount);
+ pthread_mutex_lock(&mutex);
+ readNum--;
+ 
+ if(readNum == 0){
+ 	sem_post(&write);
+ }
+ 
+ pthread_mutex_unlock(&mutex);
 
-    if(writeCount==1)
-        sem_wait(&readTry);
-    
-    sem_post(&writeMutex);
-    sem_post(&resource);
-
-    count *= 2;
-    printf("Writer: %d\t Updated Value: %d\n", *(int*)wn, count);
-    //pc++;
-    sem_post(&resource);
-
-    sem_wait(&writeMutex);
-    writeCount--;
-
-    if(writeCount==0)
-        sem_post(&readTry);
-
-    sem_post(&writeMutex);
 }
 
-int main()
-{
-    sem_init(&readMutex, 0, 1);
-    sem_init(&writeMutex, 0, 1);
-    sem_init(&readTry, 0, 1);
-    sem_init(&resource, 0, 1);
+int main(){
+	pthread_t c_read[10],c_write[10];
+    	pthread_mutex_init(&mutex, NULL);
+    	sem_init(&write,0,1);
 
-    for(int i=0; i<N; i++)
-    {
-        int *a=(int*)malloc(sizeof(int));
-        *a=i+1;
-        pthread_create(&read_t[i-1], NULL, (void*)reader, a);
-        pthread_create(&write_t[i-1], NULL, (void*)writer, a);
-    }
+	for(int i=0;i<10;i++){
+		pthread_create(&c_read[i],NULL,(void*)reader,(void*)&numPr_Cs[i]);
+		pthread_create(&c_write[i],NULL,(void*)writer,(void*)&numPr_Cs[i]);
+	}
 
-    for(int i=0; i<N; i++)
-    {
-        pthread_join(read_t[i], NULL);
-        pthread_join(write_t[i], NULL);
-    }
-    //printf("Count: %d\n", pc);
+    	for(int i = 0; i < 10; i++) {
+        	pthread_join(c_read[i], NULL);
+		pthread_join(c_write[i], NULL);
+    	}
+
+    pthread_mutex_destroy(&mutex);
+    sem_destroy(&write);
+
+return 0;
 }
